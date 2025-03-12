@@ -1,7 +1,3 @@
-
-
-
-
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -70,8 +66,11 @@ fetch('catalogoRidi.txt')
     .then(response => response.text())
     .then(data => {
         try {
-            // Convertir el contenido del archivo en un objeto JavaScript
-            diccionario = eval(data); // Usamos eval para convertir la cadena del diccionario en objeto
+            // Procesar el contenido del archivo para convertirlo en un formato válido de JavaScript
+            const contenidoProcesado = procesarTextoParaJS(data);
+
+            // Convertir el contenido procesado en un objeto JavaScript
+            diccionario = eval(contenidoProcesado);
 
             // Mostrar los primeros items
             mostrarItems(paginaActual);
@@ -82,6 +81,17 @@ fetch('catalogoRidi.txt')
     .catch(error => {
         alert("Error al cargar el archivo: " + error);
     });
+
+// Función para procesar el contenido y convertirlo en formato JavaScript válido
+function procesarTextoParaJS(texto) {
+    // Reemplazar 'None' por 'null'
+    let textoProcesado = texto.replace(/None/g, 'null');
+
+    // Reemplazar comillas simples por comillas dobles (si es necesario)
+    textoProcesado = textoProcesado.replace(/'/g, '"');
+
+    return textoProcesado;
+}
 
 // Función para mostrar los items
 function mostrarItems(pagina) {
