@@ -3,31 +3,26 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Diccionario Dinámico</title>
+    <title>Diccionario de Items</title>
     <style>
         body {
             font-family: Arial, sans-serif;
-            margin: 0;
-            padding: 20px;
-            background-color: #f4f4f9;
         }
         .item {
-            background: white;
-            padding: 15px;
-            margin-bottom: 20px;
-            border-radius: 5px;
-            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+            border: 1px solid #ddd;
+            padding: 20px;
+            margin: 10px;
+            border-radius: 8px;
         }
         .item img {
             max-width: 100px;
-            max-height: 100px;
+            height: auto;
         }
-        .pagination {
-            display: flex;
-            justify-content: center;
+        .paginacion {
+            text-align: center;
             margin-top: 20px;
         }
-        .pagination button {
+        .paginacion button {
             padding: 10px;
             margin: 5px;
             cursor: pointer;
@@ -35,94 +30,87 @@
     </style>
 </head>
 <body>
-    <div id="diccionario"></div>
-    <div class="pagination">
-        <button id="prevBtn">Anterior</button>
-        <button id="nextBtn">Siguiente</button>
+
+    <div id="itemsContainer"></div>
+
+    <div class="paginacion">
+        <button id="prevBtn" onclick="cambiarPagina(-1)">Anterior</button>
+        <button id="nextBtn" onclick="cambiarPagina(1)">Siguiente</button>
     </div>
 
     <script>
-        let data = []; // Cambiado a una lista en lugar de un objeto
-        const itemsPerPage = 40;
+        const itemsData = {
+            '777147172': {
+                'description': 'Descripción del item 1',
+                'guide': 'Guía del item 1',
+                'keywords': 'Palabras clave item 1',
+                'cover': '',
+                'completion status': 'Completado',
+                'title': 'Título del item 1',
+            },
+            '3049065898': {
+                'description': 'Descripción del item 2',
+                'guide': 'Guía del item 2',
+                'keywords': 'Palabras clave item 2',
+                'cover': '',
+                'completion status': 'En progreso',
+                'title': 'Título del item 2',
+            },
+            '4544017204': {
+                'description': 'Descripción del item 3',
+                'guide': 'Guía del item 3',
+                'keywords': 'Palabras clave item 3',
+                'cover': '',
+                'completion status': 'Pendiente',
+                'title': 'Título del item 3',
+            },
+            // Agregar más items aquí según sea necesario...
+        };
+
+        const itemsList = ['777147172', '3049065898', '4544017204', '120082032', '4594000013']; // Lista de items
+
         let currentPage = 1;
+        const itemsPerPage = 40; // Limitar a 40 items por página
 
-        // Función para cargar los datos desde el archivo JSON
-        function loadData() {
-            fetch('data_Novel.json') // Ruta al archivo JSON
-                .then(response => response.json()) // Convertir la respuesta a JSON
-                .then(jsonData => {
-                    data = jsonData; // Asignar los datos al array data
-                    renderItems(); // Renderizar los items después de cargar los datos
-                })
-                .catch(error => console.error('Error cargando el JSON:', error));
-        }
-
-        // Función para renderizar los items
-        function renderItems() {
-            const startIndex = (currentPage - 1) * itemsPerPage;
+        function mostrarItems(pagina) {
+            const startIndex = (pagina - 1) * itemsPerPage;
             const endIndex = startIndex + itemsPerPage;
-            const itemsToRender = data.slice(startIndex, endIndex);
 
-            const diccionarioDiv = document.getElementById('diccionario');
-            diccionarioDiv.innerHTML = ''; // Limpiar contenido actual
+            const paginatedItems = itemsList.slice(startIndex, endIndex);
 
-            itemsToRender.forEach(item => {
+            const container = document.getElementById('itemsContainer');
+            container.innerHTML = ''; // Limpiar el contenedor antes de añadir nuevos elementos
+
+            paginatedItems.forEach(itemId => {
+                const item = itemsData[itemId];
                 const itemDiv = document.createElement('div');
                 itemDiv.classList.add('item');
                 
-                // Crear la estructura HTML para cada item
                 itemDiv.innerHTML = `
-                    <img src="${item.cover}" alt="${item.title}" />
+                    <img src="${item.cover}" alt="${item.title}">
                     <h3>${item.title}</h3>
-                    <p><strong>Palabras clave:</strong></p>
-                    <ul>
-                        ${item.keywords ? item.keywords.map(keyword => `<li>${keyword}</li>`).join('') : '<li>No disponible</li>'}
-                    </ul>
-                    <p><strong>Estado:</strong> ${item['completion status'] ? 'Completado' : 'En progreso'}</p>
-                    <p><strong>Guía:</strong></p>
-                    <ul>
-                        ${item.guide ? item.guide.map(guide => `<li>${guide}</li>`).join('') : '<li>No disponible</li>'}
-                    </ul>
-                    <p><strong>Descripción:</strong></p>
-                    <ul>
-                        ${item.description ? item.description.map(desc => `<li>${desc}</li>`).join('') : '<li>No disponible</li>'}
-                    </ul>
+                    <p><strong>Keywords:</strong> ${item.keywords}</p>
+                    <p><strong>Estado:</strong> ${item['completion status']}</p>
+                    <p><strong>Guía:</strong> ${item.guide}</p>
+                    <p><strong>Descripción:</strong> ${item.description}</p>
                 `;
-                
-                diccionarioDiv.appendChild(itemDiv);
+
+                container.appendChild(itemDiv);
             });
 
-            // Actualizar la paginación
-            updatePagination();
+            // Mostrar/ocultar los botones de paginación
+            document.getElementById('prevBtn').style.display = pagina === 1 ? 'none' : 'inline-block';
+            document.getElementById('nextBtn').style.display = endIndex >= itemsList.length ? 'none' : 'inline-block';
         }
 
-        // Función para actualizar los botones de paginación
-        function updatePagination() {
-            const prevBtn = document.getElementById('prevBtn');
-            const nextBtn = document.getElementById('nextBtn');
-
-            prevBtn.disabled = currentPage === 1;
-            nextBtn.disabled = currentPage * itemsPerPage >= data.length;
+        function cambiarPagina(increment) {
+            currentPage += increment;
+            mostrarItems(currentPage);
         }
 
-        // Función para manejar el clic en "Anterior"
-        document.getElementById('prevBtn').addEventListener('click', () => {
-            if (currentPage > 1) {
-                currentPage--;
-                renderItems();
-            }
-        });
-
-        // Función para manejar el clic en "Siguiente"
-        document.getElementById('nextBtn').addEventListener('click', () => {
-            if (currentPage * itemsPerPage < data.length) {
-                currentPage++;
-                renderItems();
-            }
-        });
-
-        // Cargar los datos cuando la página se cargue
-        window.onload = loadData;
+        // Inicializar la primera página
+        mostrarItems(currentPage);
     </script>
+
 </body>
 </html>
