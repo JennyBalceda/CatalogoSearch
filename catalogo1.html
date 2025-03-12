@@ -1,3 +1,7 @@
+
+
+
+
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -49,7 +53,7 @@
 
         // Función para cargar los datos desde el archivo JSON
         function loadData() {
-            fetch('data_Novel.json') // Ruta al archivo JSON
+            fetch('diccionario.json') // Ruta al archivo JSON
                 .then(response => response.json()) // Convertir la respuesta a JSON
                 .then(jsonData => {
                     data = jsonData; // Asignar los datos al objeto data
@@ -72,14 +76,26 @@
                 const item = data[key];
                 const itemDiv = document.createElement('div');
                 itemDiv.classList.add('item');
+                
+                // Crear la estructura HTML para cada item
                 itemDiv.innerHTML = `
                     <img src="${item.cover}" alt="${item.title}" />
-                    <h3>${item.title}</h3>
-                    <p><strong>Palabras clave:</strong> ${item.keywords}</p>
-                    <p><strong>Estado:</strong> ${item['completion status']}</p>
-                    <p><strong>Guía:</strong> ${item.guide}</p>
-                    <p><strong>Descripción:</strong> ${item.description}</p>
+                    <h3>${item.title.join(' ')}</h3>
+                    <p><strong>Palabras clave:</strong></p>
+                    <ul>
+                        ${item.keywords.map(keyword => `<li>${keyword}</li>`).join('')}
+                    </ul>
+                    <p><strong>Estado:</strong> ${item['completion status'] ? 'Completado' : 'En progreso'}</p>
+                    <p><strong>Guía:</strong></p>
+                    <ul>
+                        ${item.guide.map(guide => `<li>${guide}</li>`).join('')}
+                    </ul>
+                    <p><strong>Descripción:</strong></p>
+                    <ul>
+                        ${item.description.map(desc => `<li>${desc}</li>`).join('')}
+                    </ul>
                 `;
+                
                 diccionarioDiv.appendChild(itemDiv);
             });
 
