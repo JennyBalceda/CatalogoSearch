@@ -42,7 +42,7 @@
     </div>
 
     <script>
-        let data = {}; // Usaremos un objeto para mantener las claves
+        let data = []; // Cambiado a una lista en lugar de un objeto
         const itemsPerPage = 40;
         let currentPage = 1;
 
@@ -51,7 +51,7 @@
             fetch('data_Novel.json') // Ruta al archivo JSON
                 .then(response => response.json()) // Convertir la respuesta a JSON
                 .then(jsonData => {
-                    data = jsonData; // Asignar los datos al objeto data
+                    data = jsonData; // Asignar los datos al array data
                     renderItems(); // Renderizar los items después de cargar los datos
                 })
                 .catch(error => console.error('Error cargando el JSON:', error));
@@ -59,25 +59,21 @@
 
         // Función para renderizar los items
         function renderItems() {
-            const keys = Object.keys(data); // Obtener todas las claves del objeto
             const startIndex = (currentPage - 1) * itemsPerPage;
             const endIndex = startIndex + itemsPerPage;
-            const itemsToRender = keys.slice(startIndex, endIndex); // Seleccionamos las claves a mostrar
+            const itemsToRender = data.slice(startIndex, endIndex);
 
             const diccionarioDiv = document.getElementById('diccionario');
             diccionarioDiv.innerHTML = ''; // Limpiar contenido actual
 
-            itemsToRender.forEach(key => {
-                const item = data[key]; // Obtener el objeto correspondiente a la clave
-
+            itemsToRender.forEach(item => {
                 const itemDiv = document.createElement('div');
                 itemDiv.classList.add('item');
                 
                 // Crear la estructura HTML para cada item
                 itemDiv.innerHTML = `
-                    <h3>Clave: ${key}</h3>
                     <img src="${item.cover}" alt="${item.title}" />
-                    <h4>${item.title}</h4>
+                    <h3>${item.title}</h3>
                     <p><strong>Palabras clave:</strong></p>
                     <ul>
                         ${item.keywords ? item.keywords.map(keyword => `<li>${keyword}</li>`).join('') : '<li>No disponible</li>'}
@@ -97,16 +93,16 @@
             });
 
             // Actualizar la paginación
-            updatePagination(keys);
+            updatePagination();
         }
 
         // Función para actualizar los botones de paginación
-        function updatePagination(keys) {
+        function updatePagination() {
             const prevBtn = document.getElementById('prevBtn');
             const nextBtn = document.getElementById('nextBtn');
 
             prevBtn.disabled = currentPage === 1;
-            nextBtn.disabled = currentPage * itemsPerPage >= keys.length;
+            nextBtn.disabled = currentPage * itemsPerPage >= data.length;
         }
 
         // Función para manejar el clic en "Anterior"
@@ -119,8 +115,7 @@
 
         // Función para manejar el clic en "Siguiente"
         document.getElementById('nextBtn').addEventListener('click', () => {
-            const keys = Object.keys(data);
-            if (currentPage * itemsPerPage < keys.length) {
+            if (currentPage * itemsPerPage < data.length) {
                 currentPage++;
                 renderItems();
             }
