@@ -27,6 +27,9 @@
             margin: 5px;
             cursor: pointer;
         }
+        .list-item {
+            margin-left: 20px;
+        }
     </style>
 </head>
 <body>
@@ -77,10 +80,10 @@
                     itemDiv.innerHTML = `
                         <img src="${item.cover}" alt="${item.title}">
                         <h3>${item.title}</h3>
-                        <p><strong>Keywords:</strong> ${item.keywords}</p>
+                        <p><strong>Keywords:</strong> ${formatearLista(item.keywords)}</p>
                         <p><strong>Estado:</strong> ${item['completion status']}</p>
-                        <p><strong>Guía:</strong> ${item.guide}</p>
-                        <p><strong>Descripción:</strong> ${item.description}</p>
+                        <p><strong>Guía:</strong> ${formatearLista(item.guide)}</p>
+                        <p><strong>Descripción:</strong> ${formatearLista(item.description)}</p>
                     `;
 
                     container.appendChild(itemDiv);
@@ -96,6 +99,14 @@
         function cambiarPagina(increment) {
             currentPage += increment;
             mostrarItems(currentPage);
+        }
+
+        // Función para formatear listas (de strings) como cadenas separadas por comas o como listas
+        function formatearLista(lista) {
+            if (Array.isArray(lista) && lista.length > 0) {
+                return `<ul>${lista.map(item => `<li class="list-item">${item}</li>`).join('')}</ul>`;
+            }
+            return "No disponible";
         }
 
         // Llamamos a cargarDatos() para cargar los datos del JSON al inicio
