@@ -1,154 +1,119 @@
-
-
-
-
 <!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Diccionario de Items</title>
+    <title>Diccionario Dinámico</title>
     <style>
         body {
             font-family: Arial, sans-serif;
-            margin: 20px;
+            margin: 0;
+            padding: 20px;
+            background-color: #f4f4f9;
         }
         .item {
-            border: 1px solid #ddd;
-            margin: 10px 0;
-            padding: 10px;
+            background: white;
+            padding: 15px;
+            margin-bottom: 20px;
             border-radius: 5px;
-            background-color: #f9f9f9;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
         }
-        .cover img {
-            max-width: 150px;
-            height: auto;
-            border-radius: 5px;
-        }
-        .title {
-            font-size: 1.2em;
-            font-weight: bold;
-        }
-        .keywords, .status, .guide, .description {
-            margin-top: 5px;
+        .item img {
+            max-width: 100px;
+            max-height: 100px;
         }
         .pagination {
+            display: flex;
+            justify-content: center;
             margin-top: 20px;
-            text-align: center;
         }
         .pagination button {
             padding: 10px;
-            margin: 0 5px;
+            margin: 5px;
             cursor: pointer;
-            border: 1px solid #ddd;
-            background-color: #f0f0f0;
-        }
-        .pagination button:hover {
-            background-color: #ddd;
-        }
-        .pagination button.active {
-            background-color: #bbb;
         }
     </style>
 </head>
 <body>
+    <div id="diccionario"></div>
+    <div class="pagination">
+        <button id="prevBtn">Anterior</button>
+        <button id="nextBtn">Siguiente</button>
+    </div>
 
-<h1>Diccionario de Items</h1>
+    <script>
+        let data = {}; // Variable para almacenar los datos del JSON
+        const itemsPerPage = 40;
+        let currentPage = 1;
+        let keys = [];
 
-<div id="items-container"></div>
+        // Función para cargar los datos desde el archivo JSON
+        function loadData() {
+            fetch('data_Novel.json') // Ruta al archivo JSON
+                .then(response => response.json()) // Convertir la respuesta a JSON
+                .then(jsonData => {
+                    data = jsonData; // Asignar los datos al objeto data
+                    keys = Object.keys(data); // Obtener las claves (item1, item2, etc.)
+                    renderItems(); // Renderizar los items después de cargar los datos
+                })
+                .catch(error => console.error('Error cargando el JSON:', error));
+        }
 
-<div class="pagination" id="pagination"></div>
+        // Función para renderizar los items
+        function renderItems() {
+            const startIndex = (currentPage - 1) * itemsPerPage;
+            const endIndex = startIndex + itemsPerPage;
+            const itemsToRender = keys.slice(startIndex, endIndex);
 
-<script>
-// Variables globales
-let diccionario = {};
-let itemsPorPagina = 2; // Para probar con menos items por página
-let paginaActual = 1;
+            const diccionarioDiv = document.getElementById('diccionario');
+            diccionarioDiv.innerHTML = ''; // Limpiar contenido actual
 
-// Función para cargar el archivo catalogoRidi.json (asegurándonos de que sea JSON)
-fetch('catalogoRidi.json') // Asegúrate de que el archivo tenga extensión .json
-    .then(response => response.json()) // Usamos .json() para convertir el archivo a un objeto JS
-    .then(data => {
-        diccionario = data; // Aquí cargamos el objeto JSON en la variable diccionario
+            itemsToRender.forEach(key => {
+                const item = data[key];
+                const itemDiv = document.createElement('div');
+                itemDiv.classList.add('item');
+                itemDiv.innerHTML = `
+                    <img src="${item.cover}" alt="${item.title}" />
+                    <h3>${item.title}</h3>
+                    <p><strong>Palabras clave:</strong> ${item.keywords}</p>
+                    <p><strong>Estado:</strong> ${item['completion status']}</p>
+                    <p><strong>Guía:</strong> ${item.guide}</p>
+                    <p><strong>Descripción:</strong> ${item.description}</p>
+                `;
+                diccionarioDiv.appendChild(itemDiv);
+            });
 
-        // Mostrar los primeros items
-        mostrarItems(paginaActual);
-    })
-    .catch(error => {
-        alert("Error al cargar el archivo: " + error);
-    });
+            // Actualizar la paginación
+            updatePagination();
+        }
 
-// Función para mostrar los items
-function mostrarItems(pagina) {
-    const startIndex = (pagina - 1) * itemsPorPagina;
-    const endIndex = pagina * itemsPorPagina;
-    const items = Object.entries(diccionario).slice(startIndex, endIndex);
+        // Función para actualizar los botones de paginación
+        function updatePagination() {
+            const prevBtn = document.getElementById('prevBtn');
+            const nextBtn = document.getElementById('nextBtn');
 
-    const itemsContainer = document.getElementById("items-container");
-    itemsContainer.innerHTML = "";
+            prevBtn.disabled = currentPage === 1;
+            nextBtn.disabled = currentPage * itemsPerPage >= keys.length;
+        }
 
-    items.forEach(([key, item]) => {
-        const div = document.createElement("div");
-        div.classList.add("item");
+        // Función para manejar el clic en "Anterior"
+        document.getElementById('prevBtn').addEventListener('click', () => {
+            if (currentPage > 1) {
+                currentPage--;
+                renderItems();
+            }
+        });
 
-        div.innerHTML = `
-            <div class="cover"><img src="${item.cover}" alt="${item.title}"></div>
-            <div class="title"><strong>${item.title}</strong></div>
-            <div class="keywords"><strong>Palabras clave:</strong> ${item.keywords}</div>
-            <div class="status"><strong>Estado:</strong> ${item["completion status"]}</div>
-            <div class="guide"><strong>Guía:</strong> ${item.guide}</div>
-            <div class="description"><strong>Descripción:</strong> ${item.description}</div>
-        `;
+        // Función para manejar el clic en "Siguiente"
+        document.getElementById('nextBtn').addEventListener('click', () => {
+            if (currentPage * itemsPerPage < keys.length) {
+                currentPage++;
+                renderItems();
+            }
+        });
 
-        itemsContainer.appendChild(div);
-    });
-
-    mostrarPaginacion();
-}
-
-// Función para mostrar los botones de paginación
-function mostrarPaginacion() {
-    const paginationContainer = document.getElementById("pagination");
-    paginationContainer.innerHTML = "";
-
-    const totalItems = Object.keys(diccionario).length;
-    const totalPages = Math.ceil(totalItems / itemsPorPagina);
-
-    // Botón de página anterior
-    if (paginaActual > 1) {
-        const prevButton = document.createElement("button");
-        prevButton.innerText = "Anterior";
-        prevButton.onclick = () => {
-            paginaActual--;
-            mostrarItems(paginaActual);
-        };
-        paginationContainer.appendChild(prevButton);
-    }
-
-    // Botones de las páginas
-    for (let i = 1; i <= totalPages; i++) {
-        const pageButton = document.createElement("button");
-        pageButton.innerText = i;
-        pageButton.classList.toggle("active", i === paginaActual);
-        pageButton.onclick = () => {
-            paginaActual = i;
-            mostrarItems(paginaActual);
-        };
-        paginationContainer.appendChild(pageButton);
-    }
-
-    // Botón de página siguiente
-    if (paginaActual < totalPages) {
-        const nextButton = document.createElement("button");
-        nextButton.innerText = "Siguiente";
-        nextButton.onclick = () => {
-            paginaActual++;
-            mostrarItems(paginaActual);
-        };
-        paginationContainer.appendChild(nextButton);
-    }
-}
-</script>
-
+        // Cargar los datos cuando la página se cargue
+        window.onload = loadData;
+    </script>
 </body>
 </html>
