@@ -65,11 +65,11 @@ let diccionario = {};
 let itemsPorPagina = 2; // Para probar con menos items por página
 let paginaActual = 1;
 
-// Función para cargar el archivo catalogoRidi.txt
-fetch('catalogoRidi.txt')
-    .then(response => response.json()) // Utilizamos .json() en lugar de .text()
+// Función para cargar el archivo catalogoRidi.json (asegurándonos de que sea JSON)
+fetch('catalogoRidi.json') // Asegúrate de que el archivo tenga extensión .json
+    .then(response => response.json()) // Usamos .json() para convertir el archivo a un objeto JS
     .then(data => {
-        diccionario = data; // Ahora el archivo es un JSON válido
+        diccionario = data; // Aquí cargamos el objeto JSON en la variable diccionario
 
         // Mostrar los primeros items
         mostrarItems(paginaActual);
