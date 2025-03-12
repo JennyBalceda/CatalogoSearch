@@ -1,3 +1,7 @@
+
+
+
+
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -25,6 +29,15 @@
             margin-right: auto;
             display: block;
         }
+        .pagination {
+            margin-top: 15px;
+            text-align: center;
+        }
+        .pagination button {
+            padding: 8px 12px;
+            margin: 0 5px;
+            cursor: pointer;
+        }
     </style>
 </head>
 <body>
@@ -47,32 +60,42 @@
         </tbody>
     </table>
 
+    <!-- Paginación -->
+    <div class="pagination">
+        <button id="prevPage" onclick="changePage(-1)">Anterior</button>
+        <button id="nextPage" onclick="changePage(1)">Siguiente</button>
+    </div>
+
     <script>
         let books = [];
+        let currentPage = 1;
+        const itemsPerPage = 5; // Número de libros por página
 
         // Cargar datos desde el archivo JSON
         fetch('data.json')
-            .then(response => response.json())  // Convertir la respuesta a JSON
+            .then(response => response.json())
             .then(data => {
                 books = data;
-                generateTable(books);  // Generar la tabla al cargar los datos
+                generateTable(books, currentPage);
             })
             .catch(error => {
                 console.error('Error al cargar el archivo JSON:', error);
             });
 
         // Función para crear las filas de la tabla
-        function generateTable(data) {
+        function generateTable(data, page) {
             const tableBody = document.querySelector("#booksTable tbody");
+            const start = (page - 1) * itemsPerPage;
+            const end = page * itemsPerPage;
+            const pageData = data.slice(start, end);
             
             // Limpiar el contenido de la tabla (en caso de que se llame varias veces)
             tableBody.innerHTML = '';
 
             // Recorrer cada libro y agregar una fila
-            data.forEach(book => {
+            pageData.forEach(book => {
                 const row = document.createElement("tr");
 
-                // Crear celdas para cada columna
                 const idCell = document.createElement("td");
                 idCell.textContent = book.id;
                 row.appendChild(idCell);
@@ -89,23 +112,32 @@
                 const link = document.createElement("a");
                 link.href = book.href;
                 link.textContent = "Ver Libro";
-                link.target = "_blank"; // Abrir en nueva pestaña
+                link.target = "_blank";
                 linkCell.appendChild(link);
                 row.appendChild(linkCell);
 
-                // Añadir la fila a la tabla
                 tableBody.appendChild(row);
             });
+
+            // Habilitar/deshabilitar botones de paginación
+            document.getElementById('prevPage').disabled = currentPage === 1;
+            document.getElementById('nextPage').disabled = currentPage * itemsPerPage >= data.length;
         }
 
-        // Función para filtrar la tabla según el texto ingresado en el buscador
+        // Función para cambiar la página
+        function changePage(direction) {
+            currentPage += direction;
+            generateTable(books, currentPage);
+        }
+
+        // Función para filtrar los resultados por título
         function filterTable() {
             const query = document.getElementById("searchBox").value.toLowerCase();
             const filteredBooks = books.filter(book => 
                 book.title.toLowerCase().includes(query) || 
                 book.title_spanish.toLowerCase().includes(query)
             );
-            generateTable(filteredBooks); // Regenerar la tabla con los resultados filtrados
+            generateTable(filteredBooks, 1); // Generar la tabla con los resultados filtrados
         }
     </script>
 </body>
