@@ -49,7 +49,7 @@
         // Función para cargar el archivo JSON de forma dinámica
         async function cargarDatos() {
             try {
-                const response = await fetch('itemsData.json');
+                const response = await fetch('data2.json');
                 const data = await response.json();
                 itemsData = data;
                 mostrarItems(currentPage);
