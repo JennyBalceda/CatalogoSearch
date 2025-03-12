@@ -3,150 +3,16 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Tabla de Libros</title>
-    <style>
-        table {
-            width: 100%;
-            border-collapse: collapse;
-        }
-        table, th, td {
-            border: 1px solid black;
-        }
-        th, td {
-            padding: 8px;
-            text-align: left;
-        }
-        #searchBox {
-            margin-bottom: 15px;
-            padding: 8px;
-            width: 100%;
-            max-width: 300px;
-            margin-left: auto;
-            margin-right: auto;
-            display: block;
-        }
-        .pagination {
-            margin-top: 15px;
-            text-align: center;
-        }
-        .pagination button {
-            padding: 8px 12px;
-            margin: 0 5px;
-            cursor: pointer;
-        }
-    </style>
+    <title>Botones de Redirección</title>
 </head>
 <body>
-    <h2>Lista de Libros</h2>
+    <h1>Selecciona una opción</h1>
+
+    <!-- Botón 1 -->
+    <button onclick="window.location.href='catalogo2.html'">Ir a Xbanxia Catalogo 1</button>
     
-    <!-- Buscador -->
-    <input type="text" id="searchBox" placeholder="Buscar por título..." oninput="filterTable()">
-    <button id="clearFilter" onclick="clearFilter()">Borrar Filtro</button>
+    <!-- Botón 2 -->
+    <button onclick="window.location.href='catalogo1.html'">Ir a Ridi Catalogo</button>
 
-    <table id="booksTable">
-        <thead>
-            <tr>
-                <th>ID</th>
-                <th>Título</th>
-                <th>Título en Español</th>
-                <th>Enlace</th>
-            </tr>
-        </thead>
-        <tbody>
-            <!-- Las filas se insertarán dinámicamente aquí -->
-        </tbody>
-    </table>
-
-    <!-- Paginación -->
-    <div class="pagination">
-        <button id="prevPage" onclick="changePage(-1)">Anterior</button>
-        <button id="nextPage" onclick="changePage(1)">Siguiente</button>
-    </div>
-
-    <script>
-        let books = [];
-        let filteredBooks = []; // Para almacenar los libros filtrados
-        let currentPage = 1;
-        const itemsPerPage = 40; // Número de libros por página
-
-        // Cargar datos desde el archivo JSON
-        fetch('data.json')
-            .then(response => response.json())
-            .then(data => {
-                books = data;
-                filteredBooks = books; // Inicialmente no hay filtro
-                generateTable(filteredBooks, currentPage);
-            })
-            .catch(error => {
-                console.error('Error al cargar el archivo JSON:', error);
-            });
-
-        // Función para crear las filas de la tabla
-        function generateTable(data, page) {
-            const tableBody = document.querySelector("#booksTable tbody");
-            const start = (page - 1) * itemsPerPage;
-            const end = page * itemsPerPage;
-            const pageData = data.slice(start, end);
-            
-            // Limpiar el contenido de la tabla (en caso de que se llame varias veces)
-            tableBody.innerHTML = '';
-
-            // Recorrer cada libro y agregar una fila
-            pageData.forEach(book => {
-                const row = document.createElement("tr");
-
-                const idCell = document.createElement("td");
-                idCell.textContent = book.id;
-                row.appendChild(idCell);
-
-                const titleCell = document.createElement("td");
-                titleCell.textContent = book.title;
-                row.appendChild(titleCell);
-
-                const titleSpanishCell = document.createElement("td");
-                titleSpanishCell.textContent = book.title_spanish;
-                row.appendChild(titleSpanishCell);
-
-                const linkCell = document.createElement("td");
-                const link = document.createElement("a");
-                link.href = book.href;
-                link.textContent = "Ver Libro";
-                link.target = "_blank";
-                linkCell.appendChild(link);
-                row.appendChild(linkCell);
-
-                tableBody.appendChild(row);
-            });
-
-            // Habilitar/deshabilitar botones de paginación
-            document.getElementById('prevPage').disabled = currentPage === 1;
-            document.getElementById('nextPage').disabled = currentPage * itemsPerPage >= data.length;
-        }
-
-        // Función para cambiar la página
-        function changePage(direction) {
-            currentPage += direction;
-            generateTable(filteredBooks, currentPage);
-        }
-
-        // Función para filtrar los resultados por título
-        function filterTable() {
-            const query = document.getElementById("searchBox").value.toLowerCase();
-            filteredBooks = books.filter(book => 
-                book.title.toLowerCase().includes(query) || 
-                book.title_spanish.toLowerCase().includes(query)
-            );
-            currentPage = 1; // Al aplicar un filtro, volvemos a la primera página
-            generateTable(filteredBooks, currentPage);
-        }
-
-        // Función para borrar el filtro y mostrar todos los libros
-        function clearFilter() {
-            document.getElementById("searchBox").value = ''; // Limpiar el input de búsqueda
-            filteredBooks = books; // Mostrar todos los libros
-            currentPage = 1; // Volver a la primera página
-            generateTable(filteredBooks, currentPage);
-        }
-    </script>
 </body>
 </html>
