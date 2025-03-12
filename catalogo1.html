@@ -1,7 +1,3 @@
-
-
-
-
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -46,10 +42,9 @@
     </div>
 
     <script>
-        let data = {}; // Variable para almacenar los datos del JSON
+        let data = {}; // Usaremos un objeto para mantener las claves
         const itemsPerPage = 40;
         let currentPage = 1;
-        let keys = [];
 
         // Función para cargar los datos desde el archivo JSON
         function loadData() {
@@ -57,7 +52,6 @@
                 .then(response => response.json()) // Convertir la respuesta a JSON
                 .then(jsonData => {
                     data = jsonData; // Asignar los datos al objeto data
-                    keys = Object.keys(data); // Obtener las claves (item1, item2, etc.)
                     renderItems(); // Renderizar los items después de cargar los datos
                 })
                 .catch(error => console.error('Error cargando el JSON:', error));
@@ -65,34 +59,37 @@
 
         // Función para renderizar los items
         function renderItems() {
+            const keys = Object.keys(data); // Obtener todas las claves del objeto
             const startIndex = (currentPage - 1) * itemsPerPage;
             const endIndex = startIndex + itemsPerPage;
-            const itemsToRender = keys.slice(startIndex, endIndex);
+            const itemsToRender = keys.slice(startIndex, endIndex); // Seleccionamos las claves a mostrar
 
             const diccionarioDiv = document.getElementById('diccionario');
             diccionarioDiv.innerHTML = ''; // Limpiar contenido actual
 
             itemsToRender.forEach(key => {
-                const item = data[key];
+                const item = data[key]; // Obtener el objeto correspondiente a la clave
+
                 const itemDiv = document.createElement('div');
                 itemDiv.classList.add('item');
                 
                 // Crear la estructura HTML para cada item
                 itemDiv.innerHTML = `
+                    <h3>Clave: ${key}</h3>
                     <img src="${item.cover}" alt="${item.title}" />
-                    <h3>${item.title.join(' ')}</h3>
+                    <h4>${item.title}</h4>
                     <p><strong>Palabras clave:</strong></p>
                     <ul>
-                        ${item.keywords.map(keyword => `<li>${keyword}</li>`).join('')}
+                        ${item.keywords ? item.keywords.map(keyword => `<li>${keyword}</li>`).join('') : '<li>No disponible</li>'}
                     </ul>
                     <p><strong>Estado:</strong> ${item['completion status'] ? 'Completado' : 'En progreso'}</p>
                     <p><strong>Guía:</strong></p>
                     <ul>
-                        ${item.guide.map(guide => `<li>${guide}</li>`).join('')}
+                        ${item.guide ? item.guide.map(guide => `<li>${guide}</li>`).join('') : '<li>No disponible</li>'}
                     </ul>
                     <p><strong>Descripción:</strong></p>
                     <ul>
-                        ${item.description.map(desc => `<li>${desc}</li>`).join('')}
+                        ${item.description ? item.description.map(desc => `<li>${desc}</li>`).join('') : '<li>No disponible</li>'}
                     </ul>
                 `;
                 
@@ -100,11 +97,11 @@
             });
 
             // Actualizar la paginación
-            updatePagination();
+            updatePagination(keys);
         }
 
         // Función para actualizar los botones de paginación
-        function updatePagination() {
+        function updatePagination(keys) {
             const prevBtn = document.getElementById('prevBtn');
             const nextBtn = document.getElementById('nextBtn');
 
@@ -122,6 +119,7 @@
 
         // Función para manejar el clic en "Siguiente"
         document.getElementById('nextBtn').addEventListener('click', () => {
+            const keys = Object.keys(data);
             if (currentPage * itemsPerPage < keys.length) {
                 currentPage++;
                 renderItems();
