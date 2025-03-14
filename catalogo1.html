@@ -7,11 +7,17 @@
     <style>
         body {
             font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f7f7f7;
         }
         .container {
             max-width: 800px;
-            margin: 0 auto;
+            margin: 20px auto;
             padding: 20px;
+            background-color: #fff;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
         }
         .book {
             border: 1px solid #ddd;
@@ -19,47 +25,147 @@
             padding: 15px;
             border-radius: 8px;
             box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            background-color: #f9f9f9;
         }
         .book h2 {
             margin-top: 0;
-            text-align: center; /* Centrar el título */
+            text-align: center;
         }
         .keywords {
             margin: 10px 0;
-            text-align: center; /* Centrar las palabras clave */
+            text-align: center;
         }
         .description, .guide {
             margin: 10px 0;
-            text-align: justify;  /* Justificar el texto */
+            text-align: justify;
+            display: none;  /* Initially hidden */
         }
         .cover {
             width: 100%;
             max-width: 300px;
             display: block;
-            margin: 0 auto;  /* Centrar la imagen */
-            object-fit: contain;  /* Asegurarse de que la imagen no se distorsione */
+            margin: 0 auto;
+            object-fit: contain;
         }
         .pagination {
             text-align: center;
             margin-top: 20px;
         }
         .pagination button {
-            padding: 5px 15px;
+            padding: 8px 20px;
             margin: 0 5px;
             cursor: pointer;
             background-color: #007BFF;
             color: white;
             border: none;
             border-radius: 5px;
+            font-size: 16px;
         }
         .pagination button:disabled {
             background-color: #ccc;
+        }
+        .filter-container {
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        .filter-container input, .filter-container select, .filter-container button {
+            padding: 10px;
+            margin: 5px;
+            font-size: 16px;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+            background-color: #f9f9f9;
+        }
+        .filter-container button {
+            background-color: #28a745;
+            color: white;
+            cursor: pointer;
+        }
+        .filter-container button:hover {
+            background-color: #218838;
+        }
+        .filter-container .clear-button {
+            background-color: #dc3545;
+            color: white;
+        }
+        .filter-container .clear-button:hover {
+            background-color: #c82333;
+        }
+        .filter-group {
+            margin-bottom: 10px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 10px;
+        }
+        .filter-group input {
+            width: 150px;
+        }
+        .filter-group button {
+            background-color: #dc3545;
+            color: white;
+            padding: 8px 12px;
+            font-size: 14px;
+        }
+        .filter-group button:hover {
+            background-color: #c82333;
+        }
+        .filter-group label {
+            margin: 0;
+        }
+        .exclude-checkbox {
+            margin: 0;
+        }
+        .filter-group input, .filter-group .exclude-checkbox, .filter-group button {
+            margin: 0 5px;
+        }
+        .filter-group input, .filter-group .exclude-checkbox {
+            margin-right: 10px;
+        }
+        .filter-group button {
+            margin-left: 10px;
+        }
+        .collapse-button {
+            display: block;
+            margin: 10px auto;
+            padding: 8px 20px;
+            background-color: #007BFF;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            cursor: pointer;
+            width: auto;
+        }
+        .collapse-button:hover {
+            background-color: #0056b3;
+        }
+        .collapse-button:focus {
+            outline: none;
+        }
+        .collapse-button-container {
+            text-align: center; /* Centrar el botón */
         }
     </style>
 </head>
 <body>
 
 <div class="container">
+    <div class="filter-container">
+        <div id="filters">
+            <!-- Los filtros serán añadidos aquí dinámicamente -->
+        </div>
+        <div>
+            <label for="filter-logic">Lógica de filtro: </label>
+            <select id="filter-logic">
+                <option value="or">O (al menos uno)</option>
+                <option value="and">Y (todos)</option>
+            </select>
+        </div>
+        <button onclick="addFilter()">Agregar filtro</button>
+        <button onclick="applyFilters()">Filtrar</button>
+        <button class="clear-button" onclick="clearFilters()">Limpiar</button>
+    </div>
     <div id="book-list"></div>
     <div class="pagination">
         <button id="prev-btn" onclick="changePage('prev')">Anterior</button>
@@ -71,13 +177,14 @@
     let currentPage = 1;
     const booksPerPage = 40;
     let books = [];
+    let filteredBooks = [];
 
     // Función para cargar el archivo JSON
     fetch('data1.json')
         .then(response => response.json())
         .then(data => {
-            // Flatten the JSON structure to create a list of all books
             books = Object.values(data[0]); // Convertimos el objeto en un array de libros
+            filteredBooks = books; // Inicialmente, no hay filtro
             renderBooks(); // Inicializamos la renderización
         })
         .catch(error => console.error('Error al cargar el JSON:', error));
@@ -92,7 +199,7 @@
         const bookListElement = document.getElementById("book-list");
         const startIndex = (currentPage - 1) * booksPerPage;
         const endIndex = startIndex + booksPerPage;
-        const booksToRender = books.slice(startIndex, endIndex);
+        const booksToRender = filteredBooks.slice(startIndex, endIndex);
 
         // Limpiar la lista de libros
         bookListElement.innerHTML = "";
@@ -100,8 +207,8 @@
         booksToRender.forEach(book => {
             const title = book.title.join(', ');
             const coverImage = book.cover;
-            const description = convertNewlinesToBreaks(book.description.join(' ')); // Convertir saltos de línea en description
-            const guide = convertNewlinesToBreaks(book.guide.join(' ')); // Convertir saltos de línea en guide
+            const description = convertNewlinesToBreaks(book.description.join(' '));
+            const guide = convertNewlinesToBreaks(book.guide.join(' '));
             const keywords = book.keywords.join(', ');
 
             const bookElement = document.createElement("div");
@@ -114,16 +221,17 @@
                     <h3>Palabras Clave</h3>
                     <p>${keywords}</p>
                 </div>
-                <div class="guide">
+                <div class="guide" style="display:none;">
                     <h3>Guía</h3>
                     <p>${guide}</p>
                 </div>
-                <div class="description">
+                <div class="description" style="display:none;">
                     <h3>Descripción</h3>
                     <p>${description}</p>
                 </div>
-                
-                
+                <div class="collapse-button-container">
+                    <button class="collapse-button" onclick="toggleCollapse(this)">Mostrar Descripción/Guía</button>
+                </div>
             `;
 
             bookListElement.appendChild(bookElement);
@@ -136,7 +244,7 @@
     function changePage(direction) {
         if (direction === 'prev' && currentPage > 1) {
             currentPage--;
-        } else if (direction === 'next' && currentPage < Math.ceil(books.length / booksPerPage)) {
+        } else if (direction === 'next' && currentPage < Math.ceil(filteredBooks.length / booksPerPage)) {
             currentPage++;
         }
 
@@ -149,7 +257,84 @@
         const nextButton = document.getElementById("next-btn");
 
         prevButton.disabled = currentPage === 1;
-        nextButton.disabled = currentPage === Math.ceil(books.length / booksPerPage);
+        nextButton.disabled = currentPage === Math.ceil(filteredBooks.length / booksPerPage);
+    }
+
+    // Función para alternar la visibilidad de la descripción y la guía
+    function toggleCollapse(button) {
+        // Encontrar los elementos de descripción y guía dentro del libro
+        const bookElement = button.closest(".book");
+        const description = bookElement.querySelector(".description");
+        const guide = bookElement.querySelector(".guide");
+
+        // Alternar visibilidad de los elementos
+        const isVisible = description.style.display === "block";
+        description.style.display = isVisible ? "none" : "block";
+        guide.style.display = isVisible ? "none" : "block";
+
+        // Cambiar el texto del botón
+        button.textContent = isVisible ? "Mostrar Descripción/Guía" : "Ocultar Descripción/Guía";
+    }
+
+    // Función para agregar un filtro dinámicamente
+    function addFilter() {
+        const filterContainer = document.getElementById('filters');
+        const filterDiv = document.createElement('div');
+        filterDiv.classList.add('filter-group');
+        filterDiv.innerHTML = `
+            <input type="text" placeholder="Keyword" class="filter-keyword">
+            <input type="checkbox" class="exclude-checkbox">
+            <button onclick="removeFilter(this)">Eliminar</button>
+        `;
+        filterContainer.appendChild(filterDiv);
+    }
+
+    // Función para eliminar un filtro
+    function removeFilter(button) {
+        const filterDiv = button.closest('.filter-group');
+        filterDiv.remove();
+    }
+
+    // Función para aplicar los filtros
+    function applyFilters() {
+        const filterLogic = document.getElementById('filter-logic').value;
+        const filterKeywords = [];
+        const excludeKeywords = [];
+
+        // Obtener todos los filtros
+        const filterElements = document.querySelectorAll('.filter-group');
+        filterElements.forEach(filter => {
+            const keyword = filter.querySelector('.filter-keyword').value.trim();
+            const exclude = filter.querySelector('.exclude-checkbox').checked;
+
+            if (keyword) {
+                if (exclude) {
+                    excludeKeywords.push(keyword);
+                } else {
+                    filterKeywords.push(keyword);
+                }
+            }
+        });
+
+        // Filtrar los libros basados en los filtros
+        filteredBooks = books.filter(book => {
+            const bookKeywords = book.keywords.join(' ').toLowerCase();
+
+            const includeMatch = filterKeywords.some(keyword => bookKeywords.includes(keyword.toLowerCase()));
+            const excludeMatch = excludeKeywords.some(keyword => bookKeywords.includes(keyword.toLowerCase()));
+
+            return includeMatch && !excludeMatch;
+        });
+
+        renderBooks(); // Mostrar los libros filtrados
+    }
+
+    // Función para limpiar los filtros
+    function clearFilters() {
+        const filterContainer = document.getElementById('filters');
+        filterContainer.innerHTML = ''; // Limpiar todos los filtros
+        filteredBooks = books; // Restablecer los libros a su estado original
+        renderBooks(); // Mostrar todos los libros
     }
 </script>
 
